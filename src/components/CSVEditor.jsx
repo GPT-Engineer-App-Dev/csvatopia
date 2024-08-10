@@ -19,6 +19,7 @@ const CSVEditor = () => {
       const rows = text.split('\n').map(row => row.split(','));
       setHeaders(rows[0]);
       setCsvData(rows.slice(1).filter(row => row.some(cell => cell.trim() !== '')));
+      toast.success('CSV file uploaded successfully!');
     };
 
     reader.readAsText(file);
@@ -34,11 +35,13 @@ const CSVEditor = () => {
 
   const addRow = () => {
     setCsvData([...csvData, new Array(headers.length).fill('')]);
+    toast.success('New row added!');
   };
 
   const deleteRow = (index) => {
     const newData = csvData.filter((_, i) => i !== index);
     setCsvData(newData);
+    toast.success('Row deleted successfully!');
   };
 
   const downloadCSV = () => {
@@ -53,28 +56,32 @@ const CSVEditor = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      toast.success('CSV file downloaded successfully!');
     }
   };
 
   return (
     <div className="container mx-auto p-4">
-      <div {...getRootProps()} className="border-2 border-dashed border-gray-300 p-4 mb-4 text-center cursor-pointer">
+      <div {...getRootProps()} className="border-2 border-dashed border-gray-300 p-8 mb-6 text-center cursor-pointer rounded-lg hover:border-gray-400 transition-colors">
         <input {...getInputProps()} />
         {isDragActive ? (
-          <p>Drop the CSV file here ...</p>
+          <p className="text-lg">Drop the CSV file here ...</p>
         ) : (
-          <p>Drag 'n' drop a CSV file here, or click to select one</p>
+          <div>
+            <p className="text-lg mb-2">Drag 'n' drop a CSV file here, or click to select one</p>
+            <p className="text-sm text-gray-500">Supported file type: .csv</p>
+          </div>
         )}
       </div>
 
-      {csvData.length > 0 && (
+      {csvData.length > 0 ? (
         <>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto bg-white shadow-md rounded-lg">
             <Table>
               <TableHeader>
                 <TableRow>
                   {headers.map((header, index) => (
-                    <TableHead key={index}>{header}</TableHead>
+                    <TableHead key={index} className="font-bold">{header}</TableHead>
                   ))}
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -87,12 +94,13 @@ const CSVEditor = () => {
                         <Input
                           value={cell}
                           onChange={(e) => handleCellEdit(rowIndex, cellIndex, e.target.value)}
+                          className="w-full"
                         />
                       </TableCell>
                     ))}
                     <TableCell>
-                      <Button variant="destructive" size="icon" onClick={() => deleteRow(rowIndex)}>
-                        <Trash2 className="h-4 w-4" />
+                      <Button variant="destructive" size="sm" onClick={() => deleteRow(rowIndex)}>
+                        <Trash2 className="h-4 w-4 mr-1" /> Delete
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -101,15 +109,20 @@ const CSVEditor = () => {
             </Table>
           </div>
 
-          <div className="mt-4 flex justify-between">
-            <Button onClick={addRow}>
+          <div className="mt-6 flex justify-between">
+            <Button onClick={addRow} variant="outline">
               <Plus className="mr-2 h-4 w-4" /> Add Row
             </Button>
-            <Button onClick={downloadCSV}>
+            <Button onClick={downloadCSV} variant="default">
               <Download className="mr-2 h-4 w-4" /> Download CSV
             </Button>
           </div>
         </>
+      ) : (
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <h3 className="text-xl font-semibold mb-2">No CSV data loaded</h3>
+          <p className="text-gray-600">Upload a CSV file to start editing</p>
+        </div>
       )}
     </div>
   );
